@@ -1,0 +1,29 @@
+plugins {
+    id 'groovy'
+    id 'application'
+}
+
+group = 'edu.wwu.eas.dba.reposync'
+version = '1.1'
+
+mainClassName = 'edu.wwu.eas.dba.reposync.RepoSync'
+
+dependencies {
+    compile 'org.gitlab:java-gitlab-api:4.0.0'
+    compile 'ch.qos.logback:logback-classic:1.2.3'
+    compile 'org.codehaus.groovy:groovy-all:2.4.15'
+    runtime 'commons-cli:commons-cli:1.4'
+    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+}
+
+repositories {
+    maven {
+        url "${easNexusUrl}/maven-public"
+    }
+}
+
+run {
+    if (project.hasProperty('runArguments')) {
+        args Eval.me(runArguments)
+    }
+}

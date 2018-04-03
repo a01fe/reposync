@@ -1,0 +1,13 @@
+# Ignore gradle build artifacts and temp files
+/.gradle/
+/build/
+
+# Ignore VSCode developer specific and temp stuff
+/.classpath
+/.project
+/.settings/
+/.vscode/
+/bin/
+
+# Ignore repos directory for developer testing
+/repos/
