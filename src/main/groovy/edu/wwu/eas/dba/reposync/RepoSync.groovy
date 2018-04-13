@@ -1,23 +1,32 @@
 package edu.wwu.eas.dba.reposync
 
+import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.Paths
 import groovy.util.logging.Slf4j
 import org.slf4j.LoggerFactory
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import org.gitlab.api.GitlabAPI
+import org.gitlab.api.models.CreateGroupRequest
+import org.gitlab.api.models.GitlabGroup
+import org.gitlab.api.models.GitlabVisibility
 
 @Slf4j
 class RepoSync {
 
     static final String ellucianUrl = "git@banner-src.ellucian.com"
-    static final String  ellucianRemote = "origin"
+    static final String ellucianRemote = "origin"
 
     static final String wwuUrl = "https://git.eas.wwu.edu"
     static final String wwuSshUrl = "git@git.eas.wwu.edu"
-    static final String wwuGroup = "Ellucian"
+    static final String easGroupPath = "eas"
+    static final String ellucianGroupPath = "ellucian"
+    static final Path rootGitlabPath = Paths.get("${easGroupPath}/${ellucianGroupPath}")
 
+    def api
     def options
+    def rootTree
 
     static void main(String... args) {
         new RepoSync().run(args)
@@ -32,7 +41,7 @@ class RepoSync {
             log.error "Fetching repo list failed"
             System.exit(1)
         }
-        return repos.grep(~/\s[CRW ]+\s*[^*]*/)*.replaceFirst(/\s[CRW ]+\s*([^\s]+)\s*/, '$1').collect { new File(it + ".git") }
+        return repos.grep(~/\s[CRW ]+\s*[^*]*/)*.replaceFirst(/\s[CRW ]+\s*([^\s]+)\s*/, '$1').collect { Paths.get(it + ".git") }
     }
 
     def exec(args) {
@@ -49,10 +58,43 @@ class RepoSync {
             result = process.exitValue()
         }
         if (result != 0) {
-            if (options.v) log.error "command failed: ${args.cmd}"
+            log.error "command failed: ${args.cmd}"
             if (!args.continueOnError) System.exit(1)
         }
         return result
+    }
+
+    GitlabGroup findOrCreateGroup(Path path) {
+        findOrCreateGroup(path.toString().split('/'), rootTree)
+    }
+
+    def getSubgroups(GitlabGroup group) {
+        def tailUrl = GitlabGroup.URL + "/" + group.id + "/subgroups" + GitlabAPI.PARAM_MAX_ITEMS_PER_PAGE
+        api.retrieve().getAll(tailUrl, GitlabGroup[].class)
+    }
+
+    // Recursively walk GitLab groups looking for the specified path. Create any
+    // containing groups.
+    GitlabGroup findOrCreateGroup(String[] path, def tree) {
+        if (path.size() <= 1) {
+            return tree.group
+        }
+        if (tree.subgroups == null) {
+            tree.subgroups = getSubgroups(tree.group).collect { [group: it, subgroups: null] }
+        }
+        def subgroup = tree.subgroups.find { it.group.path == path.head() }
+        if (subgroup == null) {
+            def request = new CreateGroupRequest(path.head())
+            request.parentId = tree.group.id
+            request.visibility = GitlabVisibility.PRIVATE
+            def group = api.createGroup(request, null)
+            tree.subgroups = getSubgroups(tree.group).collect { [group: it, subgroups: null] }
+            subgroup = tree.subgroups.find { it.group.path == path.head() }
+            if (subgroup == null) {
+                throw new RuntimeException("new group ${group.name} not found in tree")
+            }
+        }
+        return findOrCreateGroup(path.tail(), subgroup)
     }
 
     def run(String... args) {
@@ -77,42 +119,46 @@ class RepoSync {
         if (options.d)
             root.setLevel(Level.DEBUG)
 
-        GitlabAPI api = GitlabAPI.connect(wwuUrl, options.a)
-        def wwuGroupId = api.groups.find { group -> group.name == wwuGroup }?.id
+        api = GitlabAPI.connect(wwuUrl, options.a)
+        def easGroup = api.groups.find { group -> group.path == easGroupPath }
+        rootTree = [ group: getSubgroups(easGroup).find { group -> group.path == ellucianGroupPath }, subgroups: null ]
+        log.debug "root group id: ${rootTree.group.id}"
+
         def repoDir = Paths.get(options.r)
-    
+
         gitoliteRepos(ellucianUrl).each { repo ->
             log.debug "Processing ${repo}"
-            def repoPath = repoDir.resolve(repo.toPath()).toFile()
-            if (!repoPath.exists()) {
-                repoPath.getParentFile().mkdirs()
+            def repoPath = repoDir.resolve(repo)
+            if (Files.notExists(repoPath)) {
+                Files.createDirectories(repoPath.parent)
                 exec(cmd: "git clone --bare ${ellucianUrl}:${repo} ${repo}", dir: repoDir.toFile(), continueOnError: true)
             }
             // git clone may fail, only process repos that actually exist
-            if (repoPath.exists()) {
+            if (Files.exists(repoPath)) {
 
-                // Create WWU repository if necessary
-                def wwuRepoName = repo.toString().replace("/", "-").replaceFirst(/\.git$/, "")
-                def wwuRepoPath = "$wwuGroup/$wwuRepoName"
-                def wwuRepoExists = false
+                // Strip off .git extension to get GitLab path
+                def gitlabPath = repo.parent.resolve(repo.fileName.toString().replaceFirst(/\.git$/, ''))
+
+                def gitlabRepoExists = false
                 try {
-                    api.getProject(wwuRepoPath.toString())
-                    wwuRepoExists = true
+                    api.getProject(rootGitlabPath.resolve(gitlabPath).toString())
+                    gitlabRepoExists = true
                 }
                 catch (Exception e) {
                 }
-                if (! wwuRepoExists) {
-                    if (options.v) println "Creating wwu repository: $wwuRepoPath"
+                if (! gitlabRepoExists) {
+                    log.info "Creating GitLab repository: ${gitlabPath}"
                     if (!options.n) {
-                        api.createProject(wwuRepoName, wwuGroupId, repo.toString(), false, false, false, false, false, false, null, null)
+                        def repoGroup = findOrCreateGroup(gitlabPath)
+                        api.createProject(gitlabPath.fileName.toString(), repoGroup.id, repo.toString(), false, false, false, false, false, false, null, null)
                     }
                 }
 
                 // Fetch from Ellucian
-                exec(cmd: "git fetch ${ellucianUrl}:${repo} +refs/*:refs/*", dir: repoPath)
+                exec(cmd: "git fetch ${ellucianUrl}:${repo} +refs/*:refs/*", dir: repoPath.toFile())
 
                 // Push to WWU
-                exec(cmd: "git push ${wwuSshUrl}:${wwuRepoPath}.git +refs/*:refs/*", dir: repoPath)
+                exec(cmd: "git push ${wwuSshUrl}:${rootGitlabPath.resolve(repo).toString()} +refs/*:refs/*", dir: repoPath.toFile())
             }
         }
     }

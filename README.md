@@ -4,19 +4,15 @@ The _reposync_ repository contains a Groovy application to help maintain local c
 
 `reposync` is a command that mirrors Ellucian BannerXE git repositories in our local GitLab instance. It iterates over each repository in Ellucian's BannerXE Gitolite instance and creates or updates the corresponding repository in our GitLab instance.
 
-`reposync` puts repositories in the _Ellucian_ group in GitLab. It replaces `/` characters in repository names with `-` because GitLab does not allow `/` characters in repository names.  For example,
+`reposync` puts repositories in the _eas/ellucian_ group in GitLab. For example, `git@banner-src.ellucian.com:banner/plugins/banner_student_attendance_tracking.git` in Ellucian's repository becomes `git@git.eas.wwu.edu:eas/ellucian/banner/plugins/banner_student_attendance_tracking.git` in our GitLab instance.
+
+## Environment
+
+**NOTE**: The info in this section is no longer correct. I'm in the middle of modifying `reposync` to run from a GitLab pipeline. In the meantime, I'm running `reposync` by hand from the Gradle project with:
 
 ```
-banner/plugins/spring_security_cas.git
+./gradlew run -PrunArguments="['-d', '-v', '-a', '<GitLab API key>', '-r', './repos']"
 ```
-
-becomes
-
-```
-Ellucian/banner-plugins-spring_security_cas.git
-```
-
-### Environment
 
 The `reposync` user on `tisap` runs `reposync` in a cron job.
 
@@ -29,14 +25,22 @@ The `reposync` user on `tisap` runs `reposync` in a cron job.
 1.  `~/.ssh/id_rsa` and `~/.ssh/id_rsa.pub` must contain the private and public ssh key pair used to access Ellucian's Git repositories.  The public key must be registered with Ellucian and the private key should not have a passphrase if `reposync` will be run by
 cron.
 
-### Usage
+## Building
 
-To invoke `reposync.groovy`:
+`reposync` is now built as a Gradle groovy application. To build a distribution, run:
+
+```
+./gradlew distTar
+```
+
+## Usage
+
+To invoke `reposync`:
 
 ```a 
 reposync [ options ]
 ```
-Options:
+`reposync` options are:
 
 | Option | Required | Description |
 | --- | --- | --- |
