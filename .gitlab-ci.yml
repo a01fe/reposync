@@ -36,7 +36,8 @@ run:
     tags:
         - docker
         - hoth
-    when: manual
+    only:
+        - schedules
     script:
         - './gradlew run -PrunArguments="[''-d'', ''-v'', ''-a'', ''$GITLAB_API_KEY'', ''-r'', ''./repos'']"'
     allow_failure: false
