@@ -39,3 +39,20 @@ run:
     when: manual
     script:
         - './gradlew run -PrunArguments="[''-d'', ''-v'', ''-a'', ''$GITLAB_API_KEY'', ''-r'', ''./repos'']"'
+    allow_failure: false
+    environment:
+        name: production
+        url: https://git.eas.wwu.edu/eas/ellucian
+
+run_force:
+    stage: run
+    tags:
+        - docker
+        - hoth
+    when: manual
+    script:
+        - './gradlew run -PrunArguments="[''-d'', ''-v'', ''--force'', ''-a'', ''$GITLAB_API_KEY'', ''-r'', ''./repos'']"'
+    allow_failure: false
+    environment:
+        name: production
+        url: https://git.eas.wwu.edu/eas/ellucian

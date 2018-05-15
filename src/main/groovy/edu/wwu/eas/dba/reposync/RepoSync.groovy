@@ -102,6 +102,7 @@ class RepoSync {
         def cli = new CliBuilder(usage: "${name} [options]", stopAtNonOption: false)
         cli.a(longOpt: 'api-key', args: 1, argName: 'KEY', 'GitLab API key')
         cli.d(longOpt: 'debug', 'debug')
+        cli.f(longOpt: 'force', 'use --force on push to local repositories')
         cli.h(longOpt: 'help', 'help (this usage message)')
         cli.n(longOpt: 'no-change', 'no change, display only')
         cli.r(longOpt: 'repo-dir', args: 1, argName: 'DIRECTORY', 'repo cache directory')
@@ -158,7 +159,7 @@ class RepoSync {
                 exec(cmd: "git fetch ${ellucianUrl}:${repo} +refs/*:refs/*", dir: repoPath.toFile())
 
                 // Push to WWU
-                exec(cmd: "git push ${wwuSshUrl}:${rootGitlabPath.resolve(repo).toString()} +refs/*:refs/*", dir: repoPath.toFile())
+                exec(cmd: "git push${options.f ? ' --force' : ''} ${wwuSshUrl}:${rootGitlabPath.resolve(repo).toString()} +refs/*:refs/*", dir: repoPath.toFile())
             }
         }
     }
