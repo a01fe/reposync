@@ -1,0 +1,41 @@
+stages:
+    - run
+
+image: openjdk:8
+
+cache:
+  paths:
+    - .gradle
+    - build
+    - repos
+
+before_script:
+    # Set LANG to avoid local warnings from git commands
+    - export LANG=C
+
+    # Avoid reloading gradle dependencies on every run
+    - export GRADLE_USER_HOME=$(pwd)/.gradle
+    - mkdir -p $GRADLE_USER_HOME
+
+    # Start ssh-agent
+    - 'eval $(ssh-agent -s)'
+
+    # Add key to ssh-agent
+    - mkfifo keyfile
+    - chmod 600 keyfile
+    - 'echo "$SSH_PRIVATE_KEY" > keyfile &'
+    - ssh-add keyfile
+    - rm keyfile
+
+    # Set up server hostkeys
+    - mkdir -p ~/.ssh
+    - '[[ -f /.dockerenv ]] && echo "$SSH_SERVER_HOSTKEYS" > ~/.ssh/known_hosts'
+
+run:
+    stage: run
+    tags:
+        - docker
+        - hoth
+    when: manual
+    script:
+        - './gradlew run -PrunArguments="[''-d'', ''-v'', ''-a'', ''$GITLAB_API_KEY'', ''-r'', ''./repos'']"'

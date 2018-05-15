@@ -9,5 +9,5 @@
 /.vscode/
 /bin/
 
-# Ignore repos directory for developer testing
+# Ignore repos directory for developer testing and CI running
 /repos/
