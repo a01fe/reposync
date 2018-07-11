@@ -1,39 +1,34 @@
 # Introduction
 
-The _reposync_ repository contains a Groovy application to help maintain local clones of the Ellucian BannerXE Git repositories.
+This repository contains a Groovy application to help maintain local clones of Ellucian's Banner9 Git repositories.
 
-`reposync` is a command that mirrors Ellucian BannerXE git repositories in our local GitLab instance. It iterates over each repository in Ellucian's BannerXE Gitolite instance and creates or updates the corresponding repository in our GitLab instance.
+`reposync` is a command that mirrors Ellucian Banner9 git repositories in our local GitLab instance. It iterates over each repository in Ellucian's Banner9 Gitolite instance and creates or updates the corresponding repository in our GitLab instance.
 
-`reposync` puts repositories in the _eas/ellucian_ group in GitLab. For example, `git@banner-src.ellucian.com:banner/plugins/banner_student_attendance_tracking.git` in Ellucian's repository becomes `git@git.eas.wwu.edu:eas/ellucian/banner/plugins/banner_student_attendance_tracking.git` in our GitLab instance.
+`reposync` puts these repositories in the _eas/ellucian_ group in our GitLab instance. For example, `git@banner-src.ellucian.com:banner/plugins/banner_student_attendance_tracking.git` in Ellucian's repository becomes `git@git.eas.wwu.edu:eas/ellucian/banner/plugins/banner_student_attendance_tracking.git` in our GitLab instance.
 
-## Environment
+# Scheduling
 
-**NOTE**: The info in this section is no longer correct. I'm in the middle of modifying `reposync` to run from a GitLab pipeline. In the meantime, I'm running `reposync` by hand from the Gradle project with:
+`reposync` is run daily at 4am by a GitLab scheduled CI pipeline. The pipeline has two jobs: the `run` job is configured to be run by the schedule and the `run_force` is configured to be manually run.
 
-```
-./gradlew run -PrunArguments="['-d', '-v', '-a', '<GitLab API key>', '-r', './repos']"
-```
+The `run` job will fail if Ellucian revises history in their repositories. If this happens, manually run the `run_force` job to force the pushes.
 
-The `reposync` user on `tisap` runs `reposync` in a cron job.
+The CI pipeline depends on these secret variables in GitLab CI settings:
 
-`reposync` requires the following:
+1.  A GitLab user's private token used by `reposync` to make changes on behalf of that user.  The `GITLAB_API_KEY` CI variable must specify the private token of a GitLab user that has the ability to create repositories and push to protected branches in the _Ellucian_ group (master or owner).
 
-1.  A GitLab user's private token used `reposync` to make changes on behalf of that user.  The `-a` option must specify the private token of a GitLab user that has the ability to create repositories and push to protected branches in the _Ellucian_ group (master or owner).
+1.  An SSH key pair registered with Ellucian to access the Ellucian Gitolite instance. The `SSH_PRIVATE_KEY` CI variable must specify the private ssh key and it must not have a passphrase.
 
-1.  A directory where `reposync` will create bare clones of the Ellucian repositories as a staging area. `reposync` will reuse existing repositories in this directory if they are present, but will create them if not. The `-r` option must specify the path to this directory.
+1.  SSH host keys for local and Ellucian git remotes in the `SSH_SERVER_HOSTKEYS` CI variable.
 
-1.  `~/.ssh/id_rsa` and `~/.ssh/id_rsa.pub` must contain the private and public ssh key pair used to access Ellucian's Git repositories.  The public key must be registered with Ellucian and the private key should not have a passphrase if `reposync` will be run by
-cron.
+# Building
 
-## Building
-
-`reposync` is now built as a Gradle groovy application. To build a distribution, run:
+`reposync` is built as a Gradle groovy application. To build a distribution, run:
 
 ```
 ./gradlew distTar
 ```
 
-## Usage
+# Usage
 
 To invoke `reposync`:
 
@@ -46,16 +41,21 @@ reposync [ options ]
 | --- | --- | --- |
 | `-a` _KEY_ | yes | GitLab API key |
 | `-d` | no | enable debugging output |
+| `-f` | no | git push --force to local repos |
 | `-h` | no | help (usage message) |
 | `-n` | no | dry run only, make no changes |
 | `-r` _DIR_ | yes | Repository cache directory |
 | `-v` | no | verbose, show git commands and their output |
 
+# Using Ellucian repositories at WWU
+
+This section contains notes about issues with using Ellucian repositories at WWU.
+
 ## git-fix-ellucian-submodules
 
 `git-fix-ellucian-submodules` is a shell script that replaces Git submodule URLs so they point to our GitLab instance.
 
-Each BannerXE application or plugin is in its own repository.  Ellucian uses Git submodules (see http://git-scm.com/docs/git-submodule) in application repositories to reference plugins.
+Each Banner9 application or plugin is in its own repository. Ellucian uses Git submodules (see http://git-scm.com/docs/git-submodule) in application repositories to reference plugins.
 
 The submodule URLs in application `.gitmodules` files point to Ellucian's development repositories that are not accessible to us, so the URLs must be changed to point to our repositories.  The `git-fix-ellucian-submodules` script helps with this.
 
