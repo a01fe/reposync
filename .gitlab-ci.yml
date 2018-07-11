@@ -50,6 +50,8 @@ run_force:
     tags:
         - docker
         - hoth
+    only:
+        - web
     when: manual
     script:
         - './gradlew run -PrunArguments="[''-d'', ''-v'', ''--force'', ''-a'', ''$GITLAB_API_KEY'', ''-r'', ''./repos'']"'
