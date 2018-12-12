@@ -35,7 +35,7 @@ run:
     stage: run
     tags:
         - docker
-        - hoth
+        - eis
     only:
         - schedules
     script:
