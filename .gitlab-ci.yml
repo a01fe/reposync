@@ -35,7 +35,6 @@ run:
     stage: run
     tags:
         - docker
-        - eis
     only:
         - schedules
     script:
@@ -49,7 +48,6 @@ run_force:
     stage: run
     tags:
         - docker
-        - eis
     only:
         - web
     when: manual
