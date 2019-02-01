@@ -159,7 +159,7 @@ class RepoSync {
                 exec(cmd: "git fetch ${ellucianUrl}:${repo} +refs/*:refs/*", dir: repoPath.toFile())
 
                 // Push to WWU
-                exec(cmd: "git push${options.f ? ' --force' : ''} ${wwuSshUrl}:${rootGitlabPath.resolve(repo).toString()} +refs/*:refs/*", dir: repoPath.toFile())
+                exec(cmd: "git push${options.f ? ' --force' : ''} ${wwuSshUrl}:${rootGitlabPath.resolve(repo).toString()} +refs/heads/*:refs/heads/* +refs/tags/*:refs/tags/* +refs/change/*:refs/change/*", dir: repoPath.toFile())
             }
         }
     }
