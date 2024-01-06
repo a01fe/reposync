@@ -52,7 +52,3 @@ run:
   environment:
     name: production
     url: https://git.eas.wwu.edu/eas/ellucian
-  variables:
-    REPOSYNC_OPTS:
-      value: "-v"
-      description: Additional options passed to reposync
