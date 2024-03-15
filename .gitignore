@@ -1,13 +1,16 @@
 # Ignore gradle build artifacts and temp files
-/.gradle/
-/build/
+.gradle/
+build/
 
 # Ignore VSCode developer specific and temp stuff
+.bloop/
+.metals/
 /.classpath
 /.project
 /.settings/
-/.vscode/
-/bin/
+/.vscode/settings.json
 
 # Ignore repos directory for developer testing and CI running
 /repos/
+
+/src/main/scala/edu/wwu/eas/automation/automation.worksheet.sc

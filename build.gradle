@@ -1,19 +1,25 @@
 plugins {
-    id 'groovy'
+    id 'scala'
     id 'application'
+    id 'edu.wwu.eas.reposync-application'
 }
 
-group = 'edu.wwu.eas.dba.reposync'
-version = '1.1'
+group = 'edu.wwu.eas.automation'
+version = '1.3.0'
 
-mainClassName = 'edu.wwu.eas.dba.reposync.RepoSync'
+application {
+    mainClass = 'edu.wwu.eas.automation.reposyncMain'
+}
 
 dependencies {
-    compile 'org.gitlab:java-gitlab-api:4.0.0'
-    compile 'ch.qos.logback:logback-classic:1.2.3'
-    compile 'org.codehaus.groovy:groovy-all:2.4.15'
-    runtime 'commons-cli:commons-cli:1.4'
-    testCompile 'org.spockframework:spock-core:1.0-groovy-2.4'
+    implementation 'org.scala-lang:scala3-library_3:3.3.1'
+    implementation 'com.github.scopt:scopt_3:4.1.0'
+    implementation 'com.lihaoyi:os-lib_3:0.9.3'
+    implementation 'org.virtuslab:scala-yaml_3:0.0.8'
+    implementation 'org.gitlab4j:gitlab4j-api:5.5.0'
+    implementation 'ch.qos.logback:logback-classic:1.4.14'
+    implementation 'org.slf4j:jul-to-slf4j:2.0.10'
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
 }
 
 repositories {
@@ -22,8 +28,15 @@ repositories {
     }
 }
 
-run {
-    if (project.hasProperty('runArguments')) {
-        args Eval.me(runArguments)
+docker {
+    reposyncApplication {
+        platforms.set([ "linux/amd64", "linux/arm64" ])
     }
 }
+
+processResources {
+    filesMatching("**/build.properties") {
+        expand(project.properties)
+    }
+}
+processResources.inputs.property("version", version)

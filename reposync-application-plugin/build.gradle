@@ -1,0 +1,28 @@
+plugins {
+    id "edu.wwu.eas.conventions.plugin-base" version '0.3.1'
+    id 'java'
+    id 'java-gradle-plugin'
+}
+
+group = 'edu.wwwu.eas.builders'
+version = '0.1.0'
+
+dependencies {
+    implementation 'edu.wwu.eas.plugins:gradle-docker-deploy-plugin:0.11.3'
+        testImplementation 'org.spockframework:spock-core:2.1-groovy-3.0'
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+gradlePlugin {
+    plugins {
+        reposyncApplication {
+            id = 'edu.wwu.eas.reposync-application'
+            implementationClass = 'edu.wwu.eas.builders.ReposyncApplicationPlugin'
+        }
+    }
+}

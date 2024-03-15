@@ -1,0 +1,43 @@
+gitLabUrl: https://git.eas.wwu.edu
+gitLabRoot: eas/ellucian
+localGitUrl: git@git.eas.wwu.edu
+remoteGitUrl: git@banner-src.ellucian.com
+snubbies:
+  - banner/apps/banner_alumni_ssb_app.git
+  - banner/apps/banner_student_success_api.git
+  - banner/pages/alumni.git
+  - banner/pages/flexreg.git
+  - banner/plugins/banner_alumni.git
+  - banner/plugins/banner_alumni_ui.git
+  - banner/tcc/apps/banner_student_registration_ssb_app.git
+  - banner/tcc/plugins/banner_seeddata_catalog.git
+  - banner/tcc/plugins/banner_student_registration.git
+  - experience/create-experience-extension.git
+  - experience/experience-extension.git
+  - mobile/EllucianGO.git
+  - mobile/MobileServer.git
+  - mobile/ms-configuration-core.git
+  - mobile/ms-groovy.git
+  - mobile/ms-notification-core.git
+  - powercampus/Hedtech.PowerCampus.Administration.git
+  - powercampus/Hedtech.PowerCampus.Core.git
+  - powercampus/Hedtech.PowerCampus.Core.Ethos.git
+  - powercampus/Hedtech.PowerCampus.Core.WebAPI.git
+  - powercampus/Hedtech.PowerCampus.Infrastructure.git
+  - powercampus/backoffice-900.git
+  - powercampus/database-900.git
+  - powercampus/ethosapi-900.git
+  - powercampus/eventsgenerator-900.git
+  - powercampus/identitydatabase-900.git
+  - powercampus/integrationservices-900.git
+  - powercampus/notifications-900.git
+  - powercampus/notificationsdatabase-900.git
+  - powercampus/notificationservice-900.git
+  - powercampus/powercampus.auth-900.git
+  - powercampus/selfservice-900.git
+  - powercampus/selfservice-900-beta1.git
+  - powercampus/selfservice-customizations.git
+  - powercampus/servicebus-900.git
+  - powercampus/webadmin-900.git
+  - powercampus/webadministration-900.git
+  - powercampus/webproxy-900.git
