@@ -23,7 +23,7 @@ The `run` job will fail if Ellucian revises history in their repositories. If th
 
 Ellucian's customer facing gitolite instance lists some repositories as available, but `git clone` fails with permission errors.
 To avoid wasting time attempting to clone them, `reposync` will skip repositories in the `snubbies` list in `src/main/resources/config.yaml`.
-Pass `--ignore-snubbies` to `reposync` to have it try to mirror all repositories that Ellucian's gitolite instance lists. 
+Pass `--ignore-snubbies` to `reposync` to have it try to mirror all repositories that Ellucian's gitolite instance lists.
 
 The CI pipeline depends on these secret variables in GitLab CI settings:
 
