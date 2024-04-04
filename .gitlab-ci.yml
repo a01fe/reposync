@@ -15,20 +15,10 @@ run:
     - docker
   cache:
     paths:
-      - .gradle
-      - build
       - repos
   before_script:
     # Set LANG to avoid local warnings from git commands
     - export LANG=C
-
-    # Avoid reloading gradle dependencies on every run
-    - export GRADLE_USER_HOME=$(pwd)/.gradle
-    - mkdir -p $GRADLE_USER_HOME
-    - |
-      [ -r "$GRADLE_USER_HOME/gradle.properties" ] || cat > $GRADLE_USER_HOME/gradle.properties <<EOF
-      easNexusUrl=https://artifacts.eas.wwu.edu/repository
-      EOF
 
     # Start ssh-agent
     - "eval $(ssh-agent -s)"
@@ -47,7 +37,7 @@ run:
     - if: $CI_PIPELINE_SOURCE == "schedule"
     - when: manual
   script:
-    - './gradlew run --args="$REPOSYNC_OPTS -t $GITLAB_API_KEY -r ./repos"'
+    - 'reposync $REPOSYNC_OPTS -t $GITLAB_API_KEY -r ./repos'
   allow_failure: false
   environment:
     name: production
