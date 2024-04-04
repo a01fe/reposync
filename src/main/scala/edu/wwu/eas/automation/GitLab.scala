@@ -1,6 +1,6 @@
 package edu.wwu.eas.automation
 
-import scala.jdk.CollectionConverters.*
+import scala.jdk.CollectionConverters._
 import scala.util.Failure
 import scala.util.Try
 

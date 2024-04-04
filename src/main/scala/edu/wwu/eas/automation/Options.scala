@@ -6,7 +6,8 @@ import java.util.Properties
 import scala.collection.mutable
 import scala.util.matching.Regex
 
-import org.virtuslab.yaml.*
+import io.github.a01fe.yp.YamlReader
+import io.github.a01fe.yp.option_null._
 import scopt.Read
 
 case class Options(
@@ -15,6 +16,7 @@ case class Options(
   debugGitLabApi: Boolean = false,
   force: Boolean = false,
   ignoreSnubbies: Boolean = false,
+  mirror: Boolean = false,
   noChange: Boolean = false,
   repoDir: os.Path = os.pwd,
   token: String = "",
@@ -27,7 +29,7 @@ case class Config(
   remoteGitUrl: String,
   localGitUrl: String,
   snubbies: Set[String]
-) derives YamlCodec
+) derives ReadWriter
 
 object OptionParser:
 
@@ -66,6 +68,10 @@ object OptionParser:
         .action((_, c) => c.copy(ignoreSnubbies = true))
         .text("try to mirror repositories on the snubbies list")
 
+      opt[Unit]('m', "mirror")
+        .action((_, c) => c.copy(mirror = true))
+        .text("use --mirror on push to local repositories")
+
       opt[Unit]('n', "no-change")
         .action((_, c) => c.copy(noChange = true))
         .text("no changes, display actions only")
@@ -90,9 +96,7 @@ object OptionParser:
         val configFile = options.config
           .map(os.Path(_, os.pwd))
           .getOrElse(os.resource / "config.yaml")
-        val config = os.read(configFile).as[Config] match
-          case Right(c) => c
-          case Left(e)  => throw new ReposyncException(s"Cannot read configuration: ${e.msg}")
+        val config = YamlReader.read[Config](os.read(configFile))
         (options, config)
 
       case None => System.exit(1); null

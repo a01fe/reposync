@@ -1,5 +1,7 @@
 package edu.wwu.eas.automation
 
+import scala.collection.mutable
+
 import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.Logger
 import org.slf4j.LoggerFactory
@@ -9,7 +11,7 @@ import os.RelPath
 
 import edu.wwu.eas.automation.GitLab.createProject
 import edu.wwu.eas.automation.GitLab.isProject
-import edu.wwu.eas.automation.GitOps.*
+import edu.wwu.eas.automation.GitOps._
 
 /** The location of a git repository.
   *
@@ -28,7 +30,7 @@ case class Repo(name: RelPath):
 object Reposync:
 
   @main def reposyncMain(args: String*) =
-    val (options, config) = OptionParser.parse(args: _*)
+    val (options, config) = OptionParser.parse(args*)
     given Options = options
     given Config = config
 
@@ -49,8 +51,10 @@ object Reposync:
       // Filter repositories on our snubby list. These are repos that gitolite
       // says we can access but fail when we clone them
       .filterNot(n =>
-        Option.unless(options.ignoreSnubbies)(config.snubbies.contains(n.toString))
-          .filter(identity).map(_ => logger.info(s"Skipping ${n.toString} in snubbies"))
+        Option
+          .unless(options.ignoreSnubbies)(config.snubbies.contains(n.toString))
+          .filter(identity)
+          .map(_ => logger.info(s"Skipping ${n.toString} in snubbies"))
           .nonEmpty
       )
       .map(n => Repo(n))
@@ -79,20 +83,42 @@ object Reposync:
     logger.info("Mirror repos in GitLab")
     repos
       .foreach(r =>
+        // Fetch refs from Ellucian repository
         exec(
           cmd = os.proc("git", "fetch", s"${config.remoteGitUrl}:${r.name}", "+refs/*:refs/*"),
           dir = r.clonePath,
           changes = true
         )
+
+        // Look for and fix bogus refs that can cause git push --mirror to fail
+        // So far, these are always remote refs
+        if options.mirror then
+          val refs = mutable.StringBuilder()
+          exec(
+            cmd = os.proc("git", "for-each-ref", "--format", "%(refname:short)", "refs/remotes"),
+            dir = r.clonePath,
+            capture = Some(refs),
+            quiet = true
+          )
+          refs
+            .toString()
+            .linesIterator
+            .foreach(ref =>
+              logger.warn(s"Found possible bogus ref $ref in ${r.name.toString}")
+              if options.force then
+                exec(os.proc("git", "branch", "--remote", "-d", ref), dir = r.clonePath, changes = true)
+            )
+
         exec(
           cmd = os.proc(
             "git",
             "push",
             Option.when(options.force)("--force"),
+            Option.when(options.mirror)("--mirror"),
             s"${config.localGitUrl}:${r.gitLabPath}.git",
-            "+refs/heads/*:refs/heads/*",
-            "+refs/tags/*:refs/tags/*",
-            "+refs/change/*:refs/change/*"
+            Option.unless(options.mirror)("+refs/heads/*:refs/heads/*"),
+            Option.unless(options.mirror)("+refs/tags/*:refs/tags/*"),
+            Option.unless(options.mirror)("+refs/change/*:refs/change/*")
           ),
           dir = r.clonePath,
           changes = true

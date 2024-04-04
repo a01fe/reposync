@@ -33,12 +33,12 @@ run:
     # Start ssh-agent
     - "eval $(ssh-agent -s)"
 
-  # Add key to ssh-agent
-  - mkfifo keyfile
-  - chmod 600 keyfile
-  - 'echo "$SSH_PRIVATE_KEY" > keyfile &'
-  - ssh-add keyfile
-  - rm keyfile
+    # Add key to ssh-agent
+    - mkfifo keyfile
+    - chmod 600 keyfile
+    - 'echo "$SSH_PRIVATE_KEY" > keyfile &'
+    - ssh-add keyfile
+    - rm keyfile
 
     # Set up server hostkeys
     - mkdir -p ~/.ssh

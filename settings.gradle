@@ -9,4 +9,10 @@ pluginManagement {
 
 includeBuild 'reposync-application-plugin'
 
+includeBuild('../yaml-pickle') {
+    dependencySubstitution {
+        substitute module('io.github.a01fe:yaml-pickle') using project(':lib')
+    }
+}
+
 rootProject.name = 'reposync'
