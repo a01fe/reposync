@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: reposync
+spec:
+  schedule: schedule
+  suspend: false
+  concurrencyPolicy: Replace
+  jobTemplate:
+    spec:
+      # Terminate job after six hours
+      activeDeadlineSeconds: 21600
+      template:
+        spec:
+          restartPolicy: Never
+          containers:
+            - name: reposync
+              image: reposync
+              imagePullPolicy: Always
+              args:
+                - -v
+                - -r
+                - /repos
+                - -t
+                - $(GITLAB_API_KEY)
+              env:
+                - name: TZ
+                  value: PST8PDT
+                - name: GITLAB_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      key: GITLAB_API_KEY
+                      name: reposync
+                      optional: false
+                - name: SSH_HOST_KEYS
+                  valueFrom:
+                    secretKeyRef:
+                      key: SSH_HOST_KEYS
+                      name: reposync
+                      optional: false
+                - name: SSH_PRIVATE_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      key: SSH_PRIVATE_KEY
+                      name: reposync
+                      optional: false
+              resources:
+                limits:
+                  cpu: '0.1'
+                  memory: 512M
+                requests:
+                  cpu: '0.1'
+                  memory: 512M
+              volumeMounts:
+                - name: repos
+                  mountPath: /repos
+          securityContext:
+            fsGroup: 2000
+          volumes:
+            - name: repos
+              persistentVolumeClaim:
+                claimName: repos

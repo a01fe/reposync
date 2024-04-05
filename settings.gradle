@@ -7,6 +7,9 @@ pluginManagement {
   }
 }
 
+include 'app'
+include 'deploy'
+
 includeBuild 'reposync-application-plugin'
 
 includeBuild('../yaml-pickle') {

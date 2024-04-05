@@ -1,0 +1,22 @@
+plugins {
+    id 'edu.wwu.eas.kustomize'
+}
+
+docker {
+    deployment {
+        name = parent.name
+        environments {
+            prod { }
+        }
+        images {
+            reposync { image.set project(':app').docker.reposyncApplication.images.get().first() }
+        }
+        secrets {
+            reposync { items { secrets { file { path = "secrets.env"; isEnv = true }}}}
+        }
+        patches {
+            cronJobSchedule "reposync", { jobSchedule }
+            cronJobSuspend "reposync", { jobSuspend }
+        }
+    }
+}

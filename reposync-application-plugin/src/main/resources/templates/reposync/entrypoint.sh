@@ -12,7 +12,7 @@ if [ -n "\$SSH_PRIVATE_KEY" ]; then
   eval "\$(ssh-agent -s)" > /dev/null
   mkfifo keyfile
   chmod 600 keyfile
-  echo "\$SSH_PRIVATE_KEY" > keyfile &
+  echo "\$SSH_PRIVATE_KEY" | base64 -d > keyfile &
   ssh-add keyfile
   rm keyfile
 else

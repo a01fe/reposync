@@ -9,23 +9,23 @@ For example, this Ellucian repository:
 
 > `git@banner-src.ellucian.com:banner/plugins/banner_student_attendance_tracking.git`
 
-is mirrored to this in our GitLab instance:
+is mirrored to this repository in our GitLab instance:
 
 > `git@git.eas.wwu.edu:eas/ellucian/banner/plugins/banner_student_attendance_tracking.git`
 
-## Scheduled CI pipeline
+## Scheduled cron job
 
-`reposync` is run daily at 4am by a GitLab scheduled CI pipeline, and can be run manually.
+`reposync` is run daily at 4am by a cron job in our `tools` cluster.
 
-The `run` job will fail if Ellucian revises history in their repositories. If this happens, manually run the CI pipeline with the `REPOSYNC_OPTS` CI variable set to `--force -v`. With `--force`, `reposync` will force push to GitLab.
+The job will fail if Ellucian revises history in their repositories. If this happens, add `--force` to container arguments. With `--force`, `reposync` will force push to GitLab.
 
-The CI pipeline depends on these secret variables in GitLab CI settings:
+The job depends on several secrets mapped to environment variables:
 
 1. A GitLab user's private token used by `reposync` to make changes on behalf of that user.  The `GITLAB_API_KEY` CI variable must specify the private token of a GitLab user that has the ability to create repositories and push to protected branches in the _Ellucian_ group (master or owner).
 
 1. An SSH key pair registered with Ellucian to access the Ellucian Gitolite instance. The `SSH_PRIVATE_KEY` CI variable must specify the private ssh key and it must not have a passphrase.
 
-1. SSH host keys for local and Ellucian git remotes in the `SSH_SERVER_HOSTKEYS` CI variable.
+1. SSH host keys for local and Ellucian git remotes in the `SSH_HOST_KEYS` CI variable.
 
 ## Snubbies
 
@@ -47,10 +47,16 @@ This will preserve extraneous commits in our repositories that are not in Elluci
 
 ## Building
 
-`reposync` is built as a Gradle Scala application. To build a distribution, run:
+`reposync` is built as a Gradle Scala application. To build a an image, run:
 
 ```bash
-./gradlew distTar
+./gradlew buildImage
+```
+
+## Deploying
+
+```bash
+./gradlew deployProd
 ```
 
 ## Usage
