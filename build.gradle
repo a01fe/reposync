@@ -1,5 +1,5 @@
 plugins {
-    id "edu.wwu.eas.conventions.plugin-base" version '0.3.2'
+    id "edu.wwu.eas.conventions.plugin-base" version '0.3.4'
 }
 
-version = '1.3.0'
+version = '1.3.1'
