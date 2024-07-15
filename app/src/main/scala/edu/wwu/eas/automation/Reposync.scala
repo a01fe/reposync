@@ -72,6 +72,20 @@ object Reposync:
       // Ignore repos that we couldn't clone
       .filter(r => os.isDir(r.clonePath) && os.size(r.clonePath) > 0)
 
+    if options.listRepositoryAge then
+      logger.info("List repository ages")
+        repos.foreach(r =>
+          val age = mutable.StringBuilder()
+          exec(
+            cmd = os.proc("git", "log", "-1", "--format=%ct"),
+            dir = r.clonePath,
+            capture = Some(age),
+            quiet = true
+          )
+          println(s"${age.toString().strip()} ${r.name.toString}")
+        )
+        System.exit(0)
+
     logger.info("Insure repos exist in GitLab")
     repos
       .filter(!_.isRemoteRepoInGitLab)

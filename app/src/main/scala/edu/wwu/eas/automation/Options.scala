@@ -16,6 +16,7 @@ case class Options(
   debugGitLabApi: Boolean = false,
   force: Boolean = false,
   ignoreSnubbies: Boolean = false,
+  listRepositoryAge: Boolean = false,
   mirror: Boolean = false,
   noChange: Boolean = false,
   repoDir: os.Path = os.pwd,
@@ -67,6 +68,10 @@ object OptionParser:
       opt[Unit]('i', "ignore-snubbies")
         .action((_, c) => c.copy(ignoreSnubbies = true))
         .text("try to mirror repositories on the snubbies list")
+
+      opt[Unit]('l', "list-repo_age")
+        .action((_, c) => c.copy(listRepositoryAge = true))
+        .text("list date of last commit in local mirror repos")
 
       opt[Unit]('m', "mirror")
         .action((_, c) => c.copy(mirror = true))

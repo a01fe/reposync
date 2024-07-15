@@ -4,9 +4,20 @@ localGitUrl: git@git.eas.wwu.edu
 remoteGitUrl: git@banner-src.ellucian.com
 snubbies:
   - banner/apps/banner_alumni_ssb_app.git
+  - banner/apps/banner_employee_profile_ssb_app.git
+  - banner/apps/banner_faculty_attendance_tracking_ssb_app.git
+  - banner/apps/banner_finance_procurement_ssb_app.git
+  - banner/apps/banner_position_desc_ssb_app.git
+  - banner/apps/banner_print_app.git
+  - banner/apps/banner_student_advisor_ssb_app.git
   - banner/apps/banner_student_attendance_tracking_ssb_app.git
   - banner/apps/banner_student_catalog_app.git
+  - banner/apps/banner_student_faculty_grade_entry_app.git
+  - banner/apps/banner_student_generalstudent_history_app.git
+  - banner/apps/banner_student_overall_app.git
   - banner/apps/banner_student_success_api.git
+  - banner/apps/banner_student_registration_app.git
+  - banner/apps/banner_student_schedule_app.git
   - banner/pages/alumni.git
   - banner/pages/flexreg.git
   - banner/plugins/banner_alumni.git
